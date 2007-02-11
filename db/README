@@ -1,0 +1,189 @@
+
+Overview
+========
+I finally got tired of rebuilding the database and then to have my edits
+lost.  The following Perl scripts and associated modules can be used to
+manipulate the DEC's DB.
+
+At a glance you can:
+   import/export m3u-style playlist files
+   use the ID3V2 tags to set track info
+   validate your DEC library with that on your PC
+
+
+Since you will be altering the database underneath the (running) GUI
+there are THREE RULEs to remember:
+   Once you are done editing the DB you must reboot
+   Do not use the GUI after you start editing the DB
+   Running killall is not the same as a reboot
+
+You can perform multiple edits but once you are done, you *must* reboot in
+order for the GUI to sync back up with your changes.
+
+
+It should also be noted that it is pretty easy to corrupt the DEC database. 
+If you are considering tinker around with new scripts, you might consider
+dropping me a note for the "developer rules of thumb."
+
+
+Acknowledgements/Copyrights
+===========================
+The mapping scripts use the MP3/Info Perl module written by Chris Nandor
+(copyright 1998-2003) and is distributed under the terms of the Artistic
+License.  You may find a copy at:
+   http://search.cpan.org/~cnandor/MP3-Info-1.02/Info.pm
+
+
+Installation
+============
+1) Download decDbTools.tar.gz into the DEC (e.g. into the /tmp directory)
+2) Execute: mv /tmp/decDbTools.tar.gz /root
+3) Execute: cd /root (you probably don't need this)
+2) Execute: gunzip /tmp/decDbTools.tar.gz (Unpacks the gzip)
+3) Execute: tar -xvf decDbTools.tar.gz (installs the files)
+
+Here is what is installed:
+   checkM3u.pl
+   exportPlaylist.pl
+   importPlaylist.pl
+   mapGenre.pl
+   mapVideo.pl
+   findEmpties.pl
+   DEC/DB.pm
+   DEC/Map.pm
+   DEC/Playlist.pm
+   MP3/Info.pm
+
+
+Configuration
+=============
+The only configuration step required is to tweak the UI to re-build the
+DB indices upon reboot.  This is a one-time/minor change to the startui
+scripts.  If this step is not performed then the edits will be lost upon
+each reboot.
+
+There are two startui scripts, I don't know which is used so edit both
+of them.  You might consider making a backup copy.
+
+1) Edit:   /opt/odin/startui
+2) Search: for the line containing "export ODINDB_REINDEX"
+3) Edit:   Uncomment the line and make certain its value is "true":
+4) Repeat for /opt/odin/startuiDEC
+
+
+The DB Scripts
+==============
+checkM3u
+   This utility is used to compare the DEC DB with a Winamp-style m3u 
+   file.  Since I keep my entire collection on both the DEC and my PC, I
+   use this script to verify the two are in sync.
+
+   Use your mp3 player (I use winamp) to build a playlist of your
+   *entire* collection.  Copy the file to the DEC and run the utility.
+   The m3u file almost certainly will contain different (Windows) file paths
+   there is an option to map these paths to that of the DEC (otherwise it will
+   report everything as being different).
+
+   usage: checkM3u.pl <m3u file> <path map>
+
+   The default file path is "*My Music" (a wild carded path) but if your
+   path are different you can use a expression or a fixed path.
+
+   Since this utility only reads the DB, you can run it at any time.  You
+   do NOT need to reboot the DEC after running this tool.
+
+exportPlaylist
+   This will take a playlist in the DEC and produce a m3u file suitable
+   for use within a mp3 player.
+
+   usage: exportPlaylist.pl <m3u file> <playlist> <path map>
+
+   The optional third argument is for changing the parent directory
+   of the mp3.  This is a "read-only" DB utility.
+
+importPlaylist
+   Used to import a m3u file into a DEC playlist.  This is reverse
+   operation to exportPlaylist.
+
+   usage: importPlaylist.pl <m3u file> <playlist> <path map>
+
+   This utility both writes to the DB (thus requiring a reboot)!
+
+mapGenre
+   This utility will take all of the tracks in a given genre (e.g.
+   "Unknown Genre"), read the ID3v (including v2) and reset their genre
+   appropriately (e.g. "Heavy Metal").
+
+   usage: mapGenre.pl <genre> <genre> <filter>
+
+   The first argument is required, the second argument can be used to
+   hard-code in a new genre (e.g. Ragtime or Rap Metal) not defined in
+   the spec.  The default value ("-") indicates that the genre should
+   be read from the ID3v tag (v3 takes precedence over v1 if found).
+
+   The third argument can be use to filter the results found in the
+   database, the default is *.mp3.  For example:
+
+   NOTE: This utility, by default, ignores *.MP3 and *.Mp3 files!
+
+   This utility writes to the database!  Reboot after using it.
+
+mapVideo
+   I have been storing RealMedia (.rm) music videos on my DEC.  I do not
+   have a RealMedia file editor that stores album, genre, and track
+   information so these files always show up as "Unknown."  This utility
+   looks for similarly named mp3 files and uses their information to
+   populate the database for the .rm file.
+
+   usage: mapVideo.pl
+
+   NOTE: For a match to be found the file names must be *exact* match with 
+         the exception of the suffix (foo - bar.mp3 / foo - bar.rm)
+
+   This utility writes to the database!
+
+findEmpties
+   It is possible for a "mapping" operation to remove a entire genre (e.g.
+   map all of "Unknown Genre" into a more suitable category like "Heavy
+   Metal").  The DEC doesn't deal well with DB record deletions so these
+   scripts don't.
+   
+   Instead what may be left behind are empty artists, albums, or genres that
+   you may choose to clean up via the GUI (although there is no harm in
+   leaving them).  This scripts identifies those items.
+
+   usage: findEmpties.pl
+
+   It should also be noted that the DEC, even via the GUI, also doesn't deal
+   well with deletions of *empty* categories (they often re-appear upon
+   reboot).  The only 100% certain way I have found to delete them is to
+   move a track into the empty category and then move it back.  For
+   example to clear out "Unknown Genre":
+
+   1) Pick any track
+   2) Select Options->Edit->Genre
+   3) Select "Unknown Genre"
+   4) Select "Options" (to perform the save)
+   5) Re-select the same track
+   6) Select Options->Edit->Genre
+   7) Select <the original genre> and save
+   8) Select "Options" (to perform the save)
+
+   Now the empty genre is removed.  This is a pain but I have yet found a
+   more reliable way to do this.
+
+
+What's Next
+===========
+These utilities are not exactly lightning fast which is mostly due to the
+XBase and DBI Perl modules.  It would be faster to use native code or
+even Java but I cannot locate (free) libraries or drivers.
+
+I would also like to avoid the reboot (this is due to lack of support
+for rebuilding the indices files) and the ability to delete records (safely)
+from the DB.  Again different drivers could address this.
+
+If you would like additional information on how to tweak the DB shoot me
+an e-mail and I'll be glad to discuss what I've learned.  I also have 
+additional utilities that are not included in this distribution that can assist
+you.
