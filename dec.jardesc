@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<jardesc>
+    <jar path="//dec/mcaster/bin/dec.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/DEC/dec.jardesc" exportErrors="false" exportWarnings="true" includeDirectoryEntries="true" overwrite="true" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="false" mainClassHandleIdentifier="=DEC/src&lt;com.smadanhoj.dec{Main.java[Main" manifestLocation="/DEC/dec.manifest" manifestVersion="1.0" reuseManifest="true" saveManifest="true" usesManifest="true">
+        <sealing sealJar="true">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="false" exportOutputFolder="false">
+        <javaElement handleIdentifier="=MP3File-jd3Lib/&lt;helliker.id3"/>
+        <javaElement handleIdentifier="=DEC/src"/>
+        <folder path="/DEC/.settings"/>
+    </selectedElements>
+</jardesc>
